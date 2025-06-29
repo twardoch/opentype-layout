@@ -1,0 +1,1420 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+docs/
+  Bubble-ToshiOmagari.md
+  docneeds.md
+  ligatures.md
+  script_segmentation.md
+proposals/
+  20151104-movelookup.md
+  20151104-spacemark.md
+  20160520-JohnHudson-USE-arbitrary-scripts.md
+  20191011-capability.md
+  20191011-polygonkerning.md
+  20200423-AdamTwardoch-LABL-table.md
+  complex_contextual.md
+  glyph_filtering.md
+  lookupflags_extend.md
+.gitignore
+README.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="docs/Bubble-ToshiOmagari.md">
+This is a proposal for a new bubble table (BUBL?) in a font.
+
+##Overview
+Traditionally, a glyph has square bounding box to determine its space around letterforms. It works mostly okay with Latin, certainly not so much in non-Latin, and this box is why we need kerning, to compensatefor the imperfection of the square spacing. Bubble is a better alternative, made of arbitrary shapes drawn by the type designer. For more details, please see [my ATypI presentation](https://www.youtube.com/watch?v=4mh7dbcP3zQ).
+Thanks to Martin Hosken for discussing the idea with me.
+
+##Processing
+When a renderer finds a bubble in the glyph, it uses it as spacing info and ignores sidebearings. After spacing with bubbles, kern feature will be applied. I said above that kerning was a necessity for square model, bubble model cannot fix all problems and you will need some manual kerning too, albeit the pairs a type designer needs to make will be much fewer.
+
+##Efficient shapes
+There are several possible options of how to store bubbles in a font.
+<dl>
+<dt>Standard Bezier
+	<dd>Easy for type designers to draw, but hard to process collision of curves.
+<dt>List of numbers ([See from 7:50 of the video above](http://www.youtube.com/watch?v=4mh7dbcP3zQ&t=7m50s))
+	<dd>Probably the easiest for the renderer to deal with, but loses vertical spacing functionality. Also it's difficult for a font editor to convert back and forth.
+<dt>Arbitrary polygonal shapes
+	<dd>Easy to draw, easy to process. It's a bit harder to draw bubbles around round shapes.
+<dt>Octagonal polygon
+	<dd>Polygonal shapes but line angles are stricted to multiples of 45°. This is what SIL has implemented in Graphite.
+Personally I think arbitrary polygon is the way to go.
+
+##Other considerations
+- In my presentation, I introduced a way to prevent over-kerning when bubbles do not meet each other (see from [13:05 of the video above](http://www.youtube.com/watch?v=4mh7dbcP3zQ&t=18m20s)). Although I think it's a sensible limit, this is still my personal opinion and it may be worth discussing how to handle this kind of situation.
+- In some cases (e.g. Arabic), you may need a control to allow bubble to overlap, prioritising bounding box. The bubble around the resulting cluster is still useful for collision avoidance. See from [18:20 of the video above](http://www.youtube.com/watch?v=4mh7dbcP3zQ&t=18m20s)
+</file>
+
+<file path="proposals/20160520-JohnHudson-USE-arbitrary-scripts.md">
+At TYPO Berlin a couple of weeks ago — following my presentation on making fonts for USE — I got questions from a number of people regarding sending scripts with existing layout support to USE rather than legacy engines.
+
+We've spoken in the past at OTWG meetings about defining Indic3 tags to pass Devanagari etc. to USE, and I'm going to make some fonts with which to test this (I'll make these available to anyone implementing a USE engine, but not for distribution; if more open testing is desired, we could make USE-compatible versions of open source Indic fonts, but that would likely be a lot more work: my Indic fonts are pretty close to USE-compatible already, so would only need tag changes and cross-cluster contextual GSUB put into appropriate features). But there's at least some interest in having a mechanism to direct other scripts to USE, in order to take advantage of the more predictable layout behaviour and access to all OTL features. A few people asked me about passing even 'simple' scripts such as Latin to USE.
+
+In Windows 10, Sinhala and Tibetan — which were previously shaped with their own engines — are now passed to USE, *with no change in script tag*. I flagged this in my presentation as potentially dangerous for the same reasons as passing Indic2 lookups to USE are understood to be: fonts may contain contextual lookups that presume cluster-only processing, which will then behave unexpectedly when applied across a whole run. My understanding is that MS only tested their own Sinhala and Tibetan fonts when deciding to pass these scripts to USE. I am also concerned about the inconsistency developing between among USE implementations with regard to which scripts get passed to USE and which go to other engines (Google still pass Sinhala to their Indic engine, not to USE). It is relatively easy to make a font that will work with both older Indic engines and USE if one does this intentionally, but it will also be easy to make a Sinhala font presuming USE shaping on Windows that will fail if passed to an Indic2 engine. I presume the same would be true for Tibetan.
+
+During one conversation in Berlin, Behdad suggested an idea that I think deserves serious exploration: that instead of defining new script tags to send specific complex scripts to USE — e.g. <dev3>, <bng3> etc. — we could establish a mechanism by which any script tag with an initial uppercase letter would be passed to USE for layout. I'd like to discuss this idea — in email or at the next meeting — and get a sense of how viable it is, and what problems might arise.
+
+I'd also like to see if we can tidy up inconsistencies in which scripts currently get passed to USE by different implementers, before this becomes a bigger problem as more implementations emerge. USE shouldn't be yet another aspect of OTL for which font developers can't make reliable predictions.
+</file>
+
+<file path="proposals/20191011-capability.md">
+# Capability Conditions
+
+## Introduction
+
+Shaping engines change. In addition, not all shaping engines are implemented the same way.
+This has caused problems in the past where font developers have to limit their font implementations to the lowest common denominator of all the shaping engines that they expect their font to work in. Even when bugs are fixed that draws engines closer together, it is the font implementor who has the difficulty of dealing with any tail of not yet updated engines.
+
+The OpenType specification has been very stable for a number of years in terms of capability. No new lookups have been added to the standard for a very long time. But with the proposal of a number of new lookups, the divergence between the capabilities of different shaping engines, supporting the same script, will become very evident.
+
+There is a need, therefore, for a font to be able select lookups based on the capabilities of the shaping engine processing the font. Thankfully there is already a mechanism for changing which lookups run based on factors other than script and language. The [FeatureVariations Table](https://docs.microsoft.com/en-gb/typography/opentype/spec/chapter2#featurevariations-table) allows different lookup sets to be run based on conditions.
+
+This proposal is to add two new formats of [Condition Table](https://docs.microsoft.com/en-gb/typography/opentype/spec/chapter2#condition-table).
+
+## Condition Tables
+
+### Condition Table Format 2: Lookup Capability
+
+The condition is that the given list of lookups, in the collection of FeatureSubstitutionRecords are all supported by the engine based on their lookup type. As such the format 2 table has no other members.
+
+Type   | Name   | Description
+-------|--------|------------
+uint16 | Format | Format, = 2
+
+### Condition Table Format 3:  Greater Than Engine version
+
+Shaping engines change behaviour and for fonts to be able to address such changes, sometimes they need to behave differently for different versions of an engine. This condition tests the engine manufacturer and version number. This condition tests that the given version member is greater than the engine version.
+
+If the engine tag is not the same as the engine tag of the engine processing the font, then this condition fails.
+
+Type   | Name    | Description
+-------|---------|------------
+uint16 | Format  | Format, = 3
+uint16 | version | Version number to compare
+Tag    | engine  | Engine identifier
+
+The current set of reserved engine tags is:
+
+Tag  | Description
+-----|-------------
+atyp | Apple Typography (Apple)
+ctyp | CoolType (Adobe)
+dwrt | DirectWrite (Microsoft)
+hrfb | Harfbuzz
+icul | ICU Layout
+
+### Condition Table Format 4: Less Than or Equal Engine Version
+
+This condition is identical to condition format 3, except that the version comparison is inverted. The engine tag test is the same and the condition succeeds if the engine has the same tag as the given tag AND the version members is less than or equal to the version of the engine processing the font.
+
+Type   | Name    | Description
+-------|---------|------------
+uint16 | Format  | Format, = 4
+uint16 | version | Version number to compare
+Tag    | engine  | Engine identifier
+</file>
+
+<file path="proposals/20191011-polygonkerning.md">
+# Polygon Kerning
+
+## Introduction
+
+Kerning is primarily a visual activity. The current mechanisms for describing kerning are all string based and for complex strings, kerning can become prohibitively hard to describe. An alternative approach is to adjust the spacing between clusters based on some notional spacing bubble that can be described around the glyphs. This lookup uses such outlines to adjust the spacing between clusters by adjusting the space between bases.
+
+The 'bubble' is described using a simple linear polygon (hence the lookup name). If a glyph has no polygon described for it, then its bounding box is used.
+
+## Changes
+
+This new lookup has one format. The outline is described using a sequence of anchors with an implicit closure of the outline from the last anchor to the first. Anchors are used to allow for font variation and, less likely, device adjustment.
+
+A base plus all attached diacritics and cursively attached bases with their diacritics and cursively attached bases and so on, constitues a cluster. Two clusters are compared and the space between them adjusted such that the space is minimised but that no two bubble polygons from the two clusters, overlap. This space is increased in the presence of space glyphs (glyphs with no outline) by the advance widths of all the intervening space glyphs between the two clusters.
+
+If the xmargin value is specified, then the minimum space between two clusters must be greater or equal to the margin. Thus intervening spaces may make the xmargin redundant. The ymargin effectively increases the top and lowers the bottom of one of the bubble polygons during comparison between two glyphs by the ymargin amount.
+
+The maxOverlap value, if other than 0xFFFF (which indicates it is to be ignored) limits the negative difference between the right hand side of the first cluster and the left hand side of the second cluster. This limits how much two clusters may overlap.
+
+PolyKernLookupFormat1:
+
+Type   | Name       | Description
+-------|------------|------------
+uint16 | posFormat  | Format identifier: format = 1.
+uint16 | glyphCount | glyphid of highest glyph with a polygon specified.
+uint16 | flags      | bit 0: 1=16 bit offsets, else 32 bit offsets.
+uint16 | maxOverlap | Max distance a cluster may kern into another. 0xFFFF for no limit.
+uint16 | xmargin    | Minimum horizontal space between clusters.
+uint16 | ymargin    | Minimum vertical space between clusters.
+Offset16 or Offset 32 | offsets[glyphCount+1] | Offsets to start of point list for the given glyph.
+Offset16 or Offset 32  | anchors[]   | Anchor point for a corner of the bubble outline.
+
+It is possible for interaction to be across more than two clusters. For example, if a cluster completely encapsulates a folloowing cluster, then the cluster after that interacts with both previous clusters. One limit on cluster overlap is that the left hand of one cluster may not be to the left of the left hand side of a previous (in left to right terms) cluster. This stops unattached diacritics floating off.
+
+## Issues
+
+There is no base coverage table in this lookup. The problem with using a coverage table is that while it may, possibly speed up the hunt for cluster bases, the problems caused by missed cluster bases is greater than the value of speeding up the process. Consider the string 'abc' what is the semantics of a base coverage table of 'ac'? We nee the 'b' to kern and if it is ignored, does that mean we would see 'c' overlay 'b'? Should such a coverage table include spaces or not?
+</file>
+
+<file path=".gitignore">
+dev/
+</file>
+
+<file path="docs/docneeds.md">
+# OpenType Documentation Needs
+
+This document lists known documentation needs regarding the behaviour of OpenType based shaping.
+Some behaviors are different for different shapers, and these differences should also be noted.
+
+## Marks
+
+### Zeroing Marks
+When are marks zeroed? Before GPOS or after GPOS runs?
+
+### Adjusting Base
+After a mark is attached to a base glyph, what is the effect on the position of the mark of
+changing the offset or advance of the base glyph?
+
+## Ligatures
+
+Ligatures are involved with ligature attachment. They are formed as part of a GSUB ligature
+lookup.
+
+### Are Ligature Components Bases?
+For a ligature component that is not a mark, will a mark attach to the component as a base, using
+Mark Attachment?
+
+### How are Ligature Components formed and unformed?
+In a 1 to many lookup how are marks attached?
+
+#### How does a glyph become a ligature component?
+What kind of lookup and which glyphs become ligature components
+
+#### How does a ligature component lose its component status?
+Once a glyph is a ligature component, is it possible to turn it back into a normal base/mark?
+
+## Cursive Attachment
+
+### Cursive attachment of marks
+
+What happens? What happens if the first glyph is subsequently adjusted.
+
+## Cluster Definitions
+
+### What is the cluster definition for each shaping engine including DFLT
+</file>
+
+<file path="proposals/glyph_filtering.md">
+# Glyph Filtering
+
+The current mechanism for mark filtering provides a useful level of increased
+flexibility in processing lookups. This proposal extends that to include non-marks.
+
+## Change
+
+> Define LookupFlag 0x0020 to be `UseFiltering`
+
+If set `UseFiltering` extends the mark filtering concept to include non marks. The
+flag works in conjunction with the `UseMarkFilteringSet` flag to specify the
+semantics of `MarkFilteringSet`.
+
+Filtering | MarkFiltering | Description
+--------- | ------------- | -----------
+0         | 0             | No action
+0         | 1             | Specifies marks not to skip, while skipping marks
+1		  | 0             | Specifies glyphs to skip, while skipping any glyphs
+1         | 1             | Specifies glyphs not to skip, while skipping any glyphs
+
+If in addition to `UseFiltering` any of the `IgnoreBaseGlyphs`, `IgnoreLigatures` or
+`IgnoreMarks` are set, then all of the corresponding classes of glyphs will be
+skipped in addition to those specified by `UseFiltering`.
+</file>
+
+<file path="proposals/lookupflags_extend.md">
+# Lookup Flags Extensions
+
+This is a proposal on how to extend the lookup LookupFlags to support more flags
+than currently can fit into the unassigned flags.
+
+## Changes
+
+
+The lookuptable is extended to support multiple flags in anticipation of extra
+flag needs, and a single flag is added which has meaning for Attachment lookups :
+
+LookupTable:
+
+Type   | Name          | Description
+------ | ------------- | -----------
+uint16 | LookupType    | Different enumerations for GSUB and GPOS
+uint16 | LookupFlag    | Lookup qualifiers
+uint16 | SubTableCount | Number of subtables in this lookup
+Offset | Subtable[SubTableCount] | Array of offset to Subtables from beginning of Lookup table
+uint16 | MarkFilteringSet | Only present if UserMarkFilteringSet of LookupFlag is set
+uint16 | ExtraFlag     | More lookup qualifiers, only present if ExtraFlags of LookupFlag is set
+
+LookupFlag bit enumeration:
+
+Type   | Name                 | Description
+------ | -------------------- | -----------
+0x0001 | RightToLeft          | Only used for cursive attachment
+0x0002 | IgnoreBaseGlyphs     | If set, skips over base glyphs
+0x0004 | IgnoreLigatures      | If set, skips over ligatures
+0x0008 | IgnoreMarks          | If set, skips over all combining marks
+0x0010 | UserMarkFilteringSet | If set, use mark filtering
+0x0060 | Reserved             | Set to zero
+0x0080 | ExtraFlags           | If set, the ExtraFlag field is included and used
+0xFF00 | MarkAttachmentType   | If not zero, skips over all marks of attachmant type different from specified.
+
+ExtraFlag bit enumeration:
+
+Type   | Name                 | Description
+------ | -------------------- | -----------
+0x7FFF | Reserved             | Set to zero
+0x8000 | Reserved             | Set to zero. Reserved for future flags extension
+
+## Discussion
+
+Do we want to extend the `ExtraFlags` to 32-bits and save a level of future chaining?
+We are already expecting 4 bits to be used in future proposals.
+</file>
+
+<file path="docs/script_segmentation.md">
+# Script Segmentation
+
+## Introduction
+This document aims to result in a standardised algorithm for run segmentation for the purposes of shaping. It starts by examining existing algorithms. ICU is core to many of the algorithms, and in the pseudo code, the calls to ICU are simplified to aid reading.
+
+## Existing Algorithms
+
+We describe the algorithms using an informal python based pseudocode.
+
+All algorithms take careful pain to ensure that the two pairs in a punctuation pair are given then same script. The mechanisms for this are not included in the following algorithm descriptions.
+
+### LibreOffice
+
+LibreOffice uses ICU as the main mechanism for ascertaining the script of a character.
+
+```python
+def sameScript(sc1, sc2, ch):
+    return  sc1 <= USCRIPT_INHERITED or \
+    		sc2 <= USCRIPT_INHERITED or \
+    		sc1==sc2
+
+def runs(text):
+	scriptCode = USCRIPT_COMMON
+	scriptStart = 0
+	for i,c in enumerat(text):
+		sc = uscript_getScript(ch)
+		if sameScript(scriptCode, sc, c):
+			if (scriptCode <= USCRIPT_INHERITED \
+					and sc > USCRIPT_INHERITED):
+				scriptCode = sc
+		else:
+			yield((text[scriptStart:i], scriptCode))
+			scriptStart = i
+			scriptCode = sc
+	if scriptStart < len(text):
+	    yield((text[scriptStart:], scriptCode))
+```
+In addition, the algorithm ensures that runs between paired punctuation are kept together. That logic is not shown here.
+
+LibreOffice processes a paragraph and a run is the intersection between a script segmentation and a bidi segmentation. Thus script segmentation is not limited by bidi segmentation but occurs over the whole paragraph.
+
+### Firefox
+
+Gecko, the text layout engine for FireFox and other Mozilla based applications, uses a very similar algorithm to LibreOffice. The only real difference is in the `sameScript` function:
+
+```python
+def isClusterExtender(ch):
+    cat = u_charType(ch)
+    # includes U_ENCLOSING_MARK
+    return U_NON_SPACING_MARK <= cat <= U_COMBINING_SPACING_MARK or \
+        	0x200C <= ord(ch) <= 0x200D or \
+        	0xFF9E <= ord(ch) <= 0xFF9F    # katakan sound marks
+
+def sameScript(sc1, sc2, ch):
+    return sc <= USCRIPT_INHERITED or \
+    		sc1 == sc2 or \
+    		isClusterExtender(ch) or \
+    		uscript_hasScript(ch, sc1)  # script extensions of ch include sc1?
+```
+Gecko does word caching for the most part and splits segments into words for caching and shaping. A segment is created from a paragraph of text by first running the bidi algorithm and then splitting each bidi run according to script and then by word.
+
+### WebKit
+
+The WebKit algorithm differs only from the LIbreOffice algorithm in that it looks ahead rather than behind.
+
+```python
+def runs(text):
+	startIndex = 0
+	currentScript = uscript_getScript(text[0])
+	for i,c in enumerate(text[1:]):
+		if treatAsZeroWidthSpace(c): continue
+		nextScript = uscript_getScript(c)
+		if nextScript == USCRIPT_INHERITED or\
+				nextScript == USCRIPT_COMPLEX:
+			continue
+		elif currentScript == USCRIPT_INHERITED or \
+				currentScript == USCRIPT_COMPLEX:
+			currentScript = nextScript
+			continue
+		elif currentScript != nextScript and \
+				not uscript_hasScript(c, currentScript):
+			yield((text[startIndex:i], currentScript))
+			currentScript = nextScript
+			startIndex = i
+	if startIndex < len(text):
+		yield((text[startIndex:], currentScript))		
+```	
+
+WebKit splits text based on bidi and then based on font and then on script.
+
+### Blink
+
+The algorithm in Blink is more sophisticated in that it works with the extended script list for each character and works to merge them. It looks ahead one character.
+
+```python
+def getScripts(ch):
+	'''return a list of scripts for ch, with best at the front'''
+	res = uscript_getScriptExtensions(ch)
+	primary = uscript_getScript(ch)
+	if primary == res[0]:
+		pass
+	elif primary != USCRIPT_INHERITED and \
+			primary != USCRIPT_COMMON and \
+			primary != USCRIPT_INVALID_CODE:
+		res.insert(0, primary)
+	elif primary == USCRIPT_COMMON:
+		if len(res) == 1:
+			res.insert(0, primary)
+			return res
+		for i in range(1, len(res)):
+			if res[0] == USCRIPT_LATN or res[i] < res[0]:
+			    (res[0], res[i]) = (res[i], res[0])
+	else:
+		res.append(res.pop(0))
+		res.insert(0, primary)
+		for in range(2, len(res)):
+			if res[1] == USCRIPT_LATIN or res[i] < res[1]:
+			    (res[1], res[i]) = (res[i], res[1])
+	return res
+
+class runs(object):
+	def __init__(self, text):
+		self.common_preferred = USCRIPT_COMMON
+		self.current_set = [USCRIPT_COMMON]
+		self.next_set = []
+		for r in self.runs(text):
+			yield(r)
+			
+	def fetch(self, ch):
+		self.next_set = self.ahead_set
+		self.ahead_set = getScripts(ch)
+		if len(self.ahead_set) == 0:
+			return False
+		if self.ahead_set[0] == USCRIPT_INHERITED and \
+				len(self.ahead_set) > 1:
+			if self.next_set[0] == USCRIPT_COMMON:
+				self.next_set = ahead_set
+				self.next_set.pop(0)
+			self.ahead_set = [ahead_set[0]]
+		return True
+		
+	def mergeSets():
+		current_i = 0
+		priority_script = self.current_set[current_i]
+		current_i += 1
+		if self.next_set[0] <= USCRIPT_INHERITED:
+			if len(self.next_set) == 2 and \
+				priority_script <= USCRIPT_INHERITED and \
+				self.common_preferred  == USCRIPT_COMMON:
+				self.common_preferred = self.next_set[1]
+			return True
+		if priority_script <= USCRIPT_INHERITED:
+			self.current_set = self.next_set
+			return True
+		next_i = 0
+		have_priority = priority_scrint in self.next_set
+		if current_i == len(self.current_set):
+			return have_priority
+		if not have_priority:
+			priority_script = self.next_set[next_i]
+			next_i += 1
+			have_priority = priority_script in self.current_set[current_i:]
+		res = []
+		if have_priority:
+			res.append(priority_script)
+		if next_i != len(self.next_set):
+			for sc in self.current_set[current_i:]:
+				if sc in self.next_set[next_i:]:
+					res.append(sc)
+		if len(res):
+			self.current_set = res
+			return True
+		return False
+
+	def resolveCurrentScript(self):
+		res = self.current_set[0]
+		return self.common_preferred if res == USCRIPT_COMMON else res
+
+	def runs(self, text):
+		ahead_set = getScripts(text[0])
+		lasti =0
+		for i,ch in enumerate(text[1:]):
+			if not self.fetch(ch):
+				break
+			if not self.mergeSets(self):
+				script = self.resolveCurrentScript(self)
+				self.current_set = self.next_set
+				yield((text[lasti:i], script))
+				lasti = i
+		script = self.resolveCurrentScript(self)
+		self.current_set = [USCRIPT_COMMON]
+		yield((text[lasti:], script))
+```
+
+Blink first breaks text into bidi segments, then into words and then into scripts.
+
+One question is whether all this machinery is needed. This is certainly a fair question given that of the characters that have an extended script list, most of them have a default script of COMMON or INHERITED and therefore will take the script of characters around them. Many of the remaining characters with a specific default script, most of these are digits, which, apart from appropriate script based styling, are unlikely to cause problems on a run boundary.
+
+Nearly all of the rest of the characters are combining characters or are almost certainly not going to start a run, and so will take the script of the characters preceding them.
+
+There still remain a few characters which can cause problems. In particular `U+0BAA TAMIL LETTER PA` and `U+0BB5 TAMIL LETTER VA`. It may be that adding these characters to the COMMON script may resolve the problem.
+
+## Issues
+
+This section discusses various issues that need to be addressed when segmenting text into runs according to script.
+
+### Script Boundaries
+
+All the algorithms support inherited and common script characters taking the script of characters around them. All of them resolve the script for such characters based first on the characters that precede them. Then, only if this does not resolve the question are the characters following considered until a script is found. Thus:
+
+```
+AAACCCBBB
+```
+
+Where `A` is script A, `C` is script common and `B` is script B. This is resolved to:
+
+```
+AAAAAABBB
+```
+
+This can mean a run break is introduced between what was the `C` and the `B`.
+
+The fact that the run breaking algorithm may miscategorise the script of a common character is not a problem unless that character undergoes specific script only styling. If the `C` characters here should be rendered/shaped differently according to whether they resolve to script `A` or `B`, then their correct categorisation becomes important.
+
+But this is the inherent limitation of such an algorithm. Without further information to resolve the ambiguity, common characters may well end up with the wrong script on a script boundary. Inherited characters have less problem with this since they rarely occur on a script boundary, and if they do will always want to take the script of the base character that precedes them, to stay with that base character.
+
+### Unknown Characters
+
+Characters are added to the Unicode standard all the time, and while there is only one new Unicode version per year, users still want to use those characters as soon after standardisation as they can. In addition, it can take a long time for changes to the standard to result in improved application support on a user's machine. Therefore it would be good if it were possible to give the segmentation algorithm some risiliance towards future character additions. There are two primary approaches to this:
+
+* Treat all unknown characters as COMMON or INHERITED.
+* Have fallback script values associated with all, or a significant subset of, undefined characters. This can be done at the block level rather than codepoint level.
+
+The advantage of the second approach is that for the blocks where the script of undefined characters is clear, the results will almost certainly be correct (or the issue will be resolved correctly with a later Unicode release). Where there is confusion over which script to use, COMMON or UNDEFINED can be used, either falling back to the first approach or to the existing one.
+</file>
+
+<file path="docs/ligatures.md">
+# Ligatures
+
+This technical note is about how ligatures are formed and dealt with in OpenType. It
+is particularly concerned with the two ligature and multiple substitution lookups
+in GSUB.
+
+It might seem obvious that when a ligature is formed, the components that were
+constituent in forming the ligature would be considered ligature components. But what
+is less obvious is that when a ligature is broken (using a multiple substitution),
+the generated glyphs are considered components of the source ligature.
+
+The difficulty arises with mark to base attachment. If a base is considered a ligature
+component, then it cannot take part in mark to base attachment as a base. There are
+two provisions for when this limit is relaxed: for a ligature with component index of 0,
+or for a ligature base.
+
+A ligature base is formed as the result of a ligature substitution, but only if there
+is more than one source glyph to the ligature. You can't fool it by doing a 1:1 ligature.
+Ligature components are numbered with indices according to where they occur in the ligature.
+The simple approach is to say, the first glyph in a 1:n sequence has an index of 0 and
+so on. But ligature sequences may combine and so a sequence may not start at 0.
+
+## Reordering Example
+
+As an example of how this works out in practise, consider two base glyphs, x & y. We
+want to reorder xy to yx. Further let's insert some extra glyphs in between: w & z. Now
+we want to reorder xwzy to yxwz. We will do this with a single contextual chaining rule
+and a whole bunch of multiple and ligature substitutions.
+
+A simple naive approach might be to do the following transformations:
+
+> xwzy / x -> yx and zy -> z
+
+This gives the desired result. But notice that in the multiple substitution, x is now the
+second component and so has a component index of 1. This means that no diacritics can
+attach to x. We have to do something more complicated:
+
+> xwzy / x -> yxy; xy -> x; zy -> z
+
+Here now the xy -> x step has made x into a ligature base and so now diacritics
+can attach to it. In addition, all the glyphs in the sequence are either component 0 (for y) or a ligature
+base (for x & z).
+
+To achieve this, we would need the following fea:
+
+```
+lookup yxy {
+  sub x by y x y;
+} yxy;
+
+lookup zy {
+  sub x y by x;
+  sub z y by z;
+} zy;
+
+lookup reorder {
+  sub x' lookup yxy w' lookup zy z y' lookup zy;
+} reorder;
+```
+
+Why is the zy lookup, used to map xy -> x; associated with the w glyph? The reason is that
+the string grows by 2 glyphs as part of the first lookup and that we need the lookup
+executed on the second glyph of the new string.
+
+This leads to a further problem. If w & z are not present then our reordering reduces to:
+
+> xy / x -> yx and xy -> x
+
+For this we would need another lookup: xy that sub x by y x; rather than by y x y;
+
+```
+lookup yx {
+  sub x by y x ;
+} yx;
+
+lookup yxy {
+  sub x by y x y;
+} yxy;
+
+lookup zy {
+  sub x y by x;
+  sub z y by z;
+} zy;
+
+lookup reorder {
+  sub x' lookup yxy w' lookup zy z' y' lookup zy;
+  sub x' lookup yx y' lookup zy;
+} reorder;
+```
+
+And so the final result for a simple! reordering is 3 large lookups with entries
+for all x and z, multiplied by the contents of y (3 lookups per y!) and then a chaining contextual
+to hold it all together. A move lookup is so much simpler!
+
+## DirectWrite
+
+Testing on DirectWrite has turned up that breaking a ligature composed of a sequence as done in this
+example doesn't work. I'm assuming the reasoning goes something like: it's all the same ligature so the
+components remain. This is not helpful and creating a ligature out of a set of components should result
+in components being renumbered.
+</file>
+
+<file path="proposals/20151104-movelookup.md">
+# Move Lookup
+
+This is a proposal to add a GSUB lookup to support glyph movement.
+
+The purpose of this lookup is to move a glyph relative to its current position
+in the glyph string. The lookup also supports swapping two glyphs.
+
+Most OpenType implmentations use a cluster model whereby glyphs that are
+attached or are reordered in relation to each other are in the same cluster.
+If a glyph is moved across a cluster boundary, that cluster boundary
+should be removed and the clusters merged.
+
+
+## Changes
+
+Add a new GSUB lookup with lookup type of 9. There is only one format for this
+lookup type.
+
+MoveLookupFormat1:
+
+Type   | Name        | Description
+-----  | ----------  | -----------
+uint16 | SubstFormat | Format identifier-format = 1
+Offset | ClassDef    | Offset to glyph ClassDef table-from beginning of Substitution table. May be NULL
+uint8  | MoveFlags   | Flags governing the move
+int8   | MoveOffset  | Distance to move, may be negative
+
+If the MoveOffset results in a position outside the glyph string or the absolute
+values of MoveOffset is 0 or greater than 32, no action occurs and the lookup is
+ignored. Likewise if the MoveOffset results in a position outside the glyph string, then
+no action occurs. This is true even if MoveScan is set.
+
+MoveFlags bit enumeration:
+
+Type | Name       | Description
+---- | ---------- | -----------
+0x01 | MoveThis   | Moves the current glyph by the given offset
+0x02 | MoveOther  | Moves the glyph at the given offset to before the current glyph
+0x04 | MoveLimit  | Only move if the glyph at MoveOffset is in class 2
+0x08 | MoveScan   | Scans up to and including, MoveOffset, skipping any glyphs in class 3
+
+If the MoveThis flag is set, then if MoveOffset is greater than 0, then the
+current glyph is moved to be after the glyph at the given relative offset.
+Likewise if MoveOffset is less than 0, then the current glyph is moved to be
+before the glyph at the given relative offset.
+
+If the MoveOther flag is set, then if MoveOffset is greater than 0, then the
+other glyph is moved to be after the current glyph. If MoveOffset is less than
+0, then the other glyph is moved to be before the current glyph.
+
+Notice that if both bits are set, the moves are considered to happen in
+parallel and the two glyphs are swapped.
+
+The MoveLimit and MoveScan flags are used in conjunction with the ClassDef table,
+which if not present, are ignored. The classes in the ClassDef table have a fixed
+meaning:
+
+* Class 1: Only glyphs in class 1 will be moved
+
+* Class 2: If the MoveLimit flag is set, glyphs will only swap or reorder before/after glyphs of class 2.
+
+* Class 3: If the MoveScan flag is set, rather than simply checking and reordering at the given
+  MoveOffset, the lookup will scan from the given glyph in class 1 up to and including, the
+  MoveOffset in the direction of MoveOffset. The scan will skip any glyphs of
+  class 3 until a glyph of class 2 is encountered, in which case the glyph
+  will be reordered to before or after that glyph. If the scan reaches
+  MoveOffset without encountering a glyph from class 2, then no action occurs.
+  If MoveLimit is not set, then all glyphs not in class 3 are considered to be
+  in class 2.
+
+If the ClassDef offset is NULL then any glyph will move and the MoveLimit and
+MoveScan flags are treated as unset.
+
+## Rationale
+
+There are a number of cases where a reordering semantic is needed where the
+reordering is not emulating what a higher level shaping engine should be doing:
+
+* The need for a move semantic can make things much easier when dealing with
+diacritic stacking when the diacritics do not stack vertically. For example, in
+the Myanmar script, the medial ra `U+103C` is shaped to be before the base
+character it surrounds. The lower dot `U+1037` is shaped after the base, but
+needs in some contexts to attach to the medial ra. It is not possible to attach
+two marks with an intervening base (despite flags implying that). Therefore it
+is necessary to contextually reorder the lower dot to before the base to achieve
+this.
+
+* One approach to nastaliq nukta attachment attaches the nuktas in a cluster to a
+following bari yeh rather than to their bases. This involves moving the nuktas
+to follow the bari yeh.
+
+* In Thai, the sara am character `U+0E23` is decomposed, for rendering into `U+0E4D`,
+which is a diacritic, and `U+0E32` for the spacing component. This character may be
+preceeded by a tone mark `U+0E48`..`U+0E4B` but the tone mark is to be rendered above
+the `U+0E4D`. Since attachment only occurs backwards, the tone mark needs to be
+reordered after the `U+0E4D`.
+
+* Also in Thai, one minority language uses a combining macron below as a consonant modifier.
+Due to the relative canonical combining orders, this character will end up following
+a lower vowel (sara u, sara uu) when it needs to be rendered closer to the consonant
+than the vowel. The two glyphs need to be reordered. 
+
+Moving glyphs is possible now, but is hard work and slow. To move the `b` in `axb` to
+`bax` one could do the following:
+
+````
+lookup 1:
+    a'lookup 2 x b
+    b a x'lookup 3 b
+
+lookup 2:
+    sub a by b a
+
+lookup 3:
+    sub x b by x
+
+````
+
+For complex ranges of x, where x is a string and other substitutions may occur
+within the string, these lookups can become complex and interact in complex ways, sometimes
+needing special marker glyphs to be inserted and deleted. This also slows down
+shaping due to the added contextual lookups.
+
+If this proposal is implemented, the above lookups become:
+
+````
+lookup 1:
+    swap a' x b'
+````
+
+The inclusion of the more complex class table and scanning semantics allow the lookup
+to be used outside of a direct reference from a chaining contextual substution.
+</file>
+
+<file path="proposals/20200423-AdamTwardoch-LABL-table.md">
+# `LABL` — Human-readable glyph labels
+
+_By Adam Twardoch on 23 April 2020_
+
+This is a heavily-revised version of a proposal that I circulated in 2013 on the OpenType list. It had almost no response, but time passes and times change, so I’d like to pitch it again. This time, I’d like to suggest that the table could be adopted by the **OpenType format officially**, or could be **unofficially adopted by some tool and client vendors**.
+
+I’d like to propose a new SFNT table `LABL`, which serves a function similar to the `name` table, but its records contain human-readable labels for the glyphs included in the font. Below is a short introduction of the idea, followed by a draft proposal of the actual table structure, along with some examples, and a loose commentary.
+
+To discuss this, I suggest the [issue on my repo](https://github.com/twardoch/opentype-layout/issues/1).
+
+## Rationale
+
+1. Humans like words better than they like numbers.
+2. Accessing glyphs via text labels rather than numbers is better for some fonts, especially symbol fonts.
+3. Text labels may be exposed to users to reveal additional info about particular glyphs.
+4. PostScript glyph names and encoding codepoints are not enough.
+
+#### Text representation of unencoded glyphs
+
+Most fonts are made for text. Many include many glyph variants or ligatures. It’s extremely cumbersome for app vendors to “map back” particular glyphs to their textual content. Client apps could use the labels to map unencoded glyphs to their text representation in “Glyphs palette” types of scenarios, and present users with various alternatives to render a particular piece of text using a given font.
+
+If three glyphs with `glyphID` 194-196 contain three visual representations of a `sty` ligature, these glyphs will be most likely accessible through some combination of the OpenType Layout features `liga` or `dlig`, and `ssXX`. The labels table could map each of these three glyphs to the string `sty`. When the user enters the word “style”, a UI could present them with a set of “proposals” for that word that use these different glyphs. If an app uses that type of UI, it would be easier to check the text contents vocabulary of the font, alongside its `cmap` table, and compile the proposals from this data. Right now, a rather cumbersome parsing and gluing of `cmap` and `GSUB` is required.
+
+#### User-facing info about specific glyphs
+
+Glyph labeling is very useful for the textual context as well. Imagine a simple situation: you have a font which has two variants of the asterisk (`*`): one with six arms and another with five arms. You can encode one as a stylistic alternate of the other, but there isn’t really an easy way to provide the user with the information that the one glyph is “asterisk with six arms” and the other is “asterisk with five arms”.
+
+The same goes for other kinds of specially-formed glyph variants, where the designer might want to embed some useful information about what particular glyphs are useful for, what’s their stylistic treatment etc. Or maybe how a glyph should be used, that in a given implementation it works particularly well with some other glyphs or features, but not with others.
+
+#### Glyph discovery for symbol fonts
+
+Using fonts for non-textual content is a 500-years-old tradition. Borders, dingbats, mapping symbols and other kids of *repetitive* graphical units have a long tradition of being an equal part of the typesetting process just like textual characters. Also in the digital age, “symbol fonts” have always existed.
+
+A digital font can be viewed as a “database” or “collection” or symbols, which is organized in some way and has established logical and spatial relations between the symbols.
+
+The point of a *font* is not necessarily that it’s about _text_. Primarily, it’s about “movable type”, i.e. having a coordinated, automated system to reproduce repetitive graphical units on a surface.
+
+Using fonts for graphics _is_ very digital, especially if the graphics are repetitive symbols. If it’s your own self-portrait, then it’s not useful to be put inside of a font. But if it’s a graphical unit that appears more than once, or is supposed to interact in any significant way with text or other symbols — then fonts _are_ just about the right path.
+
+In the past years, we have observed a true surge in *icon fonts*, where primarily web designers have been putting graphical symbols into fonts, and using them as UI web elements. The idea, of course, isn’t new. Quite likely, it’s been pioneered by Microsoft in their Marlett font which was used to draw certain UI elements in Windows 95.
+
+For many years, there’s been a large number of symbol or dingbat fonts on the market, here’s just a [small sample](http://myfonts.us/a3rlZP). But it’s really around 2013 where “symbol fonts” seem to have taken off properly, with [FontAwesome](https://fontawesome.com/), Google’s [Material Icons](https://material.io/resources/icons/), Apple’s [SF Symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols/overview/), and various collections like [IcoMoon](https://icomoon.io/), [Iconify](https://iconify.design/), [Fontello](http://fontello.com/), [Fontastic](http://fontastic.me/) and many others.
+
+In computer programming, collections of data items are traditionally accessed using two indexing systems: by number (lists, arrays) or by name (hash tables, dictionaries). It’s widely agreed that when you index by number (or numerical code), there is a need of some external entity to “explain” the encoding system. For that, we have the Unicode Standard.
+
+But the Unicode Standard falls short of providing a *complete* solution, because it requires that a symbol is registered in Unicode, and that’s a long process. And it’s actually quite OK, I don’t see why all kinds of symbols should find their way into the Unicode Standard.
+
+I’d go even further, and say that the Unicode Standard actually outreached its own goal a bit. I think that the notion of encoding _seven_ (or whatever) different kinds of right-pointing arrows is silly. Why not just one arrow? Or nineteen? Why seven? “RIGHT SQUIGGLE ARROW”, “RIGHT WAVE ARROW”, “NOTCHED LOWER RIGHT-SHADOWED WHITE RIGHTWARDS ARROW”, “BACK-TILTED SHADOWED WHITE RIGHTWARDS ARROW”, “HEAVY BLACK-FEATHERED RIGHTWARDS ARROW”… Ehem?
+
+But OK. We do have the Unicode Standard. It’s not perfect, but it’s fine for the most parts. But it’s “lookup by number” — a notion which is good for some applications but not really useful for others.
+
+Of course OpenType fonts do have the concept of “glyph names”, i.e. the PostScript glyph names — but their role has been long overloaded, especially since the Adobe-recommended practice has been established where the names should mimick Unicode codepoints using the `uniXXXX` convention. So,
+PostScript glyph names are not in any way descriptive, really. But the fact that in original PostScript glyphs were keyed by name rather than number is telling — it tells us about human nature.
+
+Computers, of course, like numbers better than they like words. So all fonts use some sort of numeric codes to access glyphs, but for symbol fonts, OpenType does not offer a sensible method to include human-readable descriptions of the glyphs included in the font.
+
+A symbol font might have a glyph that represents a ball for playing basketball. The labels table could map this glyph to a label `basketball` in one vocabulary, and perhaps to a label `Piłka do koszykówki` in another vocabulary or language.
+
+Font cataloging services could let then search users for glyphs that depict a particular symbol that isn’t a Unicode text character or an emoji. Right now it’s impossible to find a glyph which shows, say, a banana on MyFonts.
+
+Now that `SVG` is part of OpenType, it’s more likely than ever that fonts will be used as an efficient storage for non-textual symbols. A font is not _just_ a collection of symbols. It’s a collection of symbols that, through layout systems, establishes logical and spatial relationships between these symbols. Inside a font, you can define what should happen if certain symbols occur in a sequence, under what circumstances different variants are used, and what is the spacing behavior of these symbols in relation to each other. That’s something you won’t easily implement in a cross-platform way if you just have a “bag of loose SVG graphics”. Also, fonts have (and will even more in future) a mechanism for choosing size-specific variants of the same symbol, so you won’t have to rely on linear scaling, which often produces optically sub-par results.
+
+We have at least three layout systems on the market (OpenType Layout, AAT, SIL Graphite), and none of them provides a fully adequate mechanism to provide explanatory metadata to all kinds of glyph variants the font may have.
+
+Of course font developers could make accompanying documents which describe to the user what each symbol is. But there is no standardized way to make such documents, and such documents do not travel with the font. The idea behind the `LABL` proposal is to embed this metadata inside of the font, so it doesn’t get “lost” on its travels.
+
+#### Label-based input methods for symbol fonts
+
+This proposal includes a system where entities could register vocabularyIDs. The labels used in a particular vocabularyID could correspond to some published information.
+
+For example, an organization of map rendering services could agree on a vocabulary for symbols used on maps. Then, font vendors could develop various fonts for use on maps, and if they label their glyphs using the mapping Vocabulary, the notion of switching the style of a map would be simple — the glyphs in a font could be looked up using the mapping Vocabulary labels.
+
+When the font is switched, a different set of symbols could be used. This could would be much more sensible to implement than doing all kinds of “corporate use of the PUA” kinds of hackery (which still could be done of course).
+
+Another example is mathematical typesetting: regardless of whether a typesetting engine uses the Microsoft MATH table or some TeX typesetting technique or yet another way — I think it’d be useful if the mathematical players in the field (e.g. STIX) created a vocabulary for glyphs used in math
+typesetting, and embedded them into their fonts. Other mathematical font vendors could follow that. This would aid switching fonts, providing better fallback scenarios or even just developing new math fonts (because the labels would be helpful for other font developers to understand the nature of a particular glyph).
+
+#### Development glyph names
+
+Most font editing apps (FontLab, Glyphs, RoboFont, FontForge) allow type designers to use glyph names during font development that don’t conform with the strict [Adobe Glyph Naming](https://github.com/adobe-type-tools/agl-aglfn/) recommendations. The development glyph names are stored inside development font formats such as [UFO](http://unifiedfontobject.org/), [`.glyphs`](https://github.com/schriftgestalt/GlyphsSDK/blob/master/GlyphsFileFormat.md) or [`.vfj`](https://github.com/kateliev/vfjLib/).
+
+Some font vendors are interested to export those “development” glyph names into fonts. This proposal provides a simple place for development glyph names to exist within OpenType font files.
+
+## Proposal
+
+I’d like to propose a simple idea how address this problem. The proposal for the `LABL` table (“Glyph labels table”) comes in two **variants**. Both variants can supply labels only for a few glyphs in the font, or for many, or for all of them:
+
+- **Variant A** is extremely simple to implement: it’s identical in structure to the `name` table. However, it’s not so space-efficient, because each record includes the `platformID` and `encodingID` fields.
+- **Variant B** is inspired by the existing `name` and `cmap` and `post` tables, but is not identical to them. It is more space-efficient.
+
+**We should choose either Variant A or Variant B.**
+
+## `LABL`: Glyph labels table
+
+This table maps human-readable names (“labels”) to the glyph index values used in the font. The table may contain more than one glyph labeling scheme (“vocabulary”).
+
+The purpose of this table is to provide application developers with the ability to present to users meaningful human-readable labels for glyphs, especially if the glyphs are non-textual. Application developers could also utilize this table to produce an alternative input method where the user could type in a portion of a label and then, the input text would be searched for in the `LABL` table, and matching glyphs from the current font (or from a selection of fonts) could be presented to the user for final input. Also, the labels could be used to aid accessibility by providing a plain-text description of otherwise graphical glyphs.
+
+## `LABL` table Variant A
+
+The structure of the labels table is identical to the OpenType naming table ([`name`](https://docs.microsoft.com/en-us/typography/opentype/spec/name). The labels table interprets some fields differently to the naming table.
+
+### Labels table header
+
+The labels table header is identical to the Naming table header. There are two formats for the Labels table, except that `LabelRecord` in used instead of a `NameRecord`:
+
+- [Format 0](https://docs.microsoft.com/en-us/typography/opentype/spec/name#naming-table-format-0) uses platform-specific, numeric language identifiers.
+- [Format 1](https://docs.microsoft.com/en-us/typography/opentype/spec/name#naming-table-format-1) allows for use of language-tag strings to indicate the language of strings.
+
+Both formats include variable-size string-data storage, and an array of label records.
+
+### LabelRecord: Label records
+
+The label records follow the structure of the [Name Records](https://docs.microsoft.com/en-us/typography/opentype/spec/name#name-records) of the Naming table. However, the labels table uses slightly different identifiers.
+
+| Type       | Name           | Description                                                      |
+| ---------- | -------------- | ---------------------------------------------------------------- |
+| _uint16_   | `vocabularyID` | Vocabulary ID instead of `name.platformID`                       |
+| _uint16_   | `encodingID`   | Vocabulary-specific sub-identifier, instead of `name.encodingID` |
+| _uint16_   | `languageID`   | Language ID, same as `name.languageID`                           |
+| _uint16_   | `glyphID`      | Glyph ID, instead of `name.nameID`                               |
+| _uint16_   | `length`       | String length (in bytes).                                        |
+| _Offset16_ | `offset`       | String offset from start of storage area (in bytes).             |
+
+By default, all strings are assumed to use Unicode **UTF-16BE** encoding.
+
+- The `vocabularyID` identifier is used in the way discussed below.
+- The `encodingID` may be used as a vocabulary-specific sub-identifier, for example for a major version of a particular vocabulary. If not meaningful, it should be `0`.
+
+## `LABL` table Variant B
+
+The `LABL` table borrows some concepts from the ([`name`](https://docs.microsoft.com/en-us/typography/opentype/spec/name) and [`cmap`](https://docs.microsoft.com/en-us/typography/opentype/spec/cmap) tables.
+
+### Labels table header
+
+The labels table is organized as follows:
+
+| Type            | Name                          | Description                                                             |
+| --------------- | ----------------------------- | ----------------------------------------------------------------------- |
+| _uint16_        | `version`                     | Table version (`0`).                                                    |
+| _uint16_        | `numTables`                   | Number of subtables.                                                    |
+| _Offset32_      | `stringOffset`                | Offset to start of storage area (from start of table).                  |
+| _LabelSubtable_ | `labelSubtable[count]`        | The label subtables where count is the number of subtables.             |
+| _uint16_        | `langTagCount`                | Number of language-tag records.                                         |
+| _LangTagRecord_ | `langTagRecord[langTagCount]` | The language-tag records where `langTagCount` is the number of records. |
+| (Variable)      |                               | Storage for the actual string data.                                     |
+
+The `LABL` table header is followed by an array of label subtables, one per vocabulary. Each subtable specifies label records that map glyph IDs to the associated strings. The number of vocabulary subtables is `numTables`.
+
+The `langTagCount` and `langTagRecord` array is identical to the one used in `name` table [format 1](https://docs.microsoft.com/en-us/typography/opentype/spec/name#naming-table-format-1).
+
+### LabelSubtable: Label vocabulary subtable
+
+A label vocabulary subtable looks as follows:
+
+| Type          | Name                 | Description                                               |
+| ------------- | -------------------- | --------------------------------------------------------- |
+| _uint16_      | `vocabularyID`       | Vocabulary ID                                             |
+| _uint16_      | `languageID`         | Language ID.                                              |
+| _uint16_      | `count`              | Number of label records.                                  |
+| _LabelRecord_ | `labelRecord[count]` | The label records where `count` is the number of records. |
+
+#### vocabularyID
+
+The `vocabularyID` identifier is used in the way discussed below.
+
+#### languageID
+
+If a `languageID` is less than `0x8000`, it uses the same mechanism as the `platformID` 3 language identifiers in the `name` table.
+
+If a `languageID` is equal to or greater than `0x8000`, it is associated with a language-tag record (LangTagRecord) that references a language-tag string.
+
+For language-neutral labels, the `name` table records should use `languageID` `0x0409` (U.S. English).
+
+### LabelRecord: Label records
+
+| Type       | Name      | Description                                          |
+| ---------- | --------- | ---------------------------------------------------- |
+| _uint16_   | `glyphID` | Glyph ID                                             |
+| _uint16_   | `length`  | String length (in bytes).                            |
+| _Offset32_ | `offset`  | String offset from start of storage area (in bytes). |
+
+Within one label vocabulary subtable, a `glyphID` may be used only once.
+
+Unless there are other recommendations for a particular `vocabularyID`, it is assumed that:
+
+- Each label string is encoded using Unicode **UTF-16BE** (_Note: this is debatable, could be **UTF-8 without BOM**_ instead).
+- U.S. English or language-neutral labels should use no leading or trailing spaces, common words should be spelled in all-lowercase (while proper nouns or abbreviations using the appropriate normal-text casing), and little or no punctuation should be used.
+
+## vocabularyID
+
+Where the `name` records uses a `platformID`, the `LABL` table uses a `vocabularyID`.
+
+| Value  | Description                                |
+| ------ | ------------------------------------------ |
+| `0`    | text contents                              |
+| `1`    | private vocabulary                         |
+| `2`    | development glyph names                    |
+| `3`    | vendor-specific vocabulary                 |
+| `4-15` | reserved                                   |
+| `>15`  | registered by the specification maintainer |
+
+### vocabularyID 0: Text contents
+
+A label in the vocabularyID 0 defines the actual text which the labeled glyph represents, expressed as a Unicode string.
+
+By default, vocabularyID 0 labels are language-neutral, so they use Language ID `0x0409`, however, localized labels are permissible.
+
+If glyphs are mapped in the Unicode `cmap` table (3.1 or 3.10), label records for them are not necessary. However, text glyphs only accessible via OpenType Layout features or other such mechanisms, such as ligatures or alternate glyphs, may use labels from the vocabularyID 0. Client apps can use the vocabularyID labels to map glyphs to their text representation.
+
+### vocabularyID 1: Private vocabulary
+
+Labels in vocabularyID 1 can be formed freely by any font vendor, and do not need to adhere to any rules, conventions or standards. It is recommended that strings in the private vocabulary use Unicode encoding, but vendors may choose to use other means to interpret the data.
+
+### vocabularyID 2: Development glyph names
+
+Most font editing apps (FontLab, Glyphs, RoboFont, FontForge) allow type designers to use glyph names during font development that don’t conform with the strict [Adobe Glyph Naming](https://github.com/adobe-type-tools/agl-aglfn/) recommendations. The development glyph names are stored inside development font formats such as [UFO](http://unifiedfontobject.org/), [`.glyphs`](https://github.com/schriftgestalt/GlyphsSDK/blob/master/GlyphsFileFormat.md) or [`.vfj`](https://github.com/kateliev/vfjLib/).
+
+Some font vendors are interested to export those “development” glyph names into fonts. Labels in the vocabularyID 2 allow them to.
+
+### vocabularyID 3: Vendor-specific vocabulary
+
+Labels in the vocabularyID 2 can be formed freely by any font vendor, but the assumption is made that each font vendor (as identified by the achVendID code in the OS/2 table) maintains some sort of vocabulary to which the defined labels adhere.
+
+### Other vocabularyIDs
+
+Labels defined for the vocabularyIDs > 15 need to be formed according to the vocabulary maintained by the registered entity. Below, I’m giving loose examples of vocabularyIDs which might be proposed for registration.
+
+#### vocabularyID 15: [Wikipedia](https://www.wikipedia.org/)
+
+Any label mapped to a glyph and registered in the vocabularyID 3 (Wikipedia) should be spelled exactly like the title of the Wikipedia article which corresponds to that label in the appropriate language.
+
+#### vocabularyID 16: [The Noun Project](https://thenounproject.com/)
+
+Any label mapped to a glyph and registered in the vocabularyID 4 (The Noun Project) should be spelled exactly like the title of the entry on The Noun Project which corresponds to that label in the appropriate language.
+
+#### vocabularyID 17: [The Medieval Unicode Font Initiative](http://www.mufi.info/)
+
+Labels would be formed according to the “descriptive name” used within the Medieval Unicode Font Initiative.
+
+#### vocabularyID 18: [SIL](http://scripts.sil.org/SILPUAassignments)
+
+Labels would be formed according to the “descriptive name” used within SIL, especially for glyphs not accessible through OpenType Layout but instead accessible through the SIL Graphite layout system.
+
+### Optional: vocabularyID ???: Development metadata
+
+_Note: this is debatable, and perhaps this should not be included at all._
+
+Any record with vocabularyID must have `encodingID` 0 and `languageID` 0.
+
+A label in this vocabularyID must be a valid JSON dictionary, encoded as UTF-8 without BOM.
+
+It is recommended that the keys in the dictionary follow the [UFO reverse domain naming scheme](http://unifiedfontobject.org/versions/ufo3/conventions/#reverse-domain-naming-schemes).
+
+Vendors may use labels with vocabularyID 4 to store glyph-specific metadata intended for font development. For example, the JSON data may epxress the contents of the [GLIF lib](http://unifiedfontobject.org/versions/ufo3/glyphs/glif/).
+
+## Examples
+
+### Example 1: “sty” ligature
+
+If three glyphs with `glyphID` 194-196 contain three visual representations of a `sty` ligature, these glyphs will be most likely accessible through some combination of the OpenType Layout features `liga` or `dlig`, and `ssXX`. `LABL` entries with `vocabularyID` 0 (= text contents) and `languageID` `0x0409` could exist, and map these three glyphs to the string `sty`.
+
+When the user enters the word “style”, a UI could present them with a set of “proposals” for that word that use these different glyphs. If an app uses that type of UI, it would be easier to check the text contents vocabulary of the font, alongside its `cmap` table, and compile the proposals from this data. Right now, a rather cumbersome parsing and gluing of `cmap` and `GSUB` is required.
+
+### Example 2. “Basketball” glyph
+
+Let’s assume that the glyph with the `glyphID` 34 represents a ball for playing basketball. In that case:
+
+A `LABL` entry with `vocabularyID` 1 (= private vocabulary) and `languageID` `0x0409` could map `glyphID` 34 to the string with the contents `basketball`, conforming with the “all lowercase” recommendation for general labels.
+
+Another `LABL` entry with `vocabularyID` 15 (= Wikipedia) and `languageID` `0x0409` could map `glyphID` 34 to a string with the contents `Basketball (ball)`, because that is the title of the English Wikipedia article describing the ball for playing basketball: `https://en.wikipedia.org/wiki/Basketball_(ball)`
+
+Another `LABL` entry with `vocabularyID` 15 (= Wikipedia) and `languageID` `0x0407` (German) could map the glyph to a string `Basketball (Sportgerät)`, as this is the title of the corresponding German Wikipedia article: `https://de.wikipedia.org/wiki/Basketball_(Sportger%C3%A4t)`
+
+Finally, an additional `LABL` entry with `vocabularyID` 16 (= The Noun Project) could map the `glyphID` 34 to the string `Basketball`, which is the title of the English entry on The Noun Project: `https://thenounproject.com/noun/basketball/`
+
+### Example 3: “AcmeCo” logotype
+
+If the glyph with `glyphID` 36 contains the logotype which represents the word `AcmeCo`, then that glyph may be accessible through the OpenType Layout feature `liga` or `dlig` as a ligature of the glyphs `/A/c/m/e/C/o`.
+
+A `LABL` entry with `vocabularyID` 0 (= text contents) and `languageID` `0x0409` could exist that maps this glyph to the string `AcmeCo`.
+
+## Discussion
+
+### `Zapf` table
+
+Apple maintains a spec for the SFNT [`Zapf`](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6Zapf.html) table that partially has similar goals. I have reviewed the `Zapf` table spec before writing my own proposal. I always liked the name of the `Zapf` table and its general intent — but at the same time, I have always found the actual table format hard to understand.
+
+There are multiple different structures (GlyphInfo, KindName, GroupInfo, GroupInfoGroup, NamedGroup, FeatureInfo), and I have a hard time imagining a sensible user interface for it. Also, the `Zapf` FeatureInfo structure seems to be closely tied to AAT. So, `Zapf` tries to expose metadata “for everything”: glyphs, glyph groups (classes) and typographic features (tied to AAT). By doing this, I think it shoots over its own goal a bit.
+
+The `Zapf` table is almost 20 years old, and has a number of concepts which certainly are out of date (hardcoded four types of names: Apple name, Adobe name, AFII name, Unicode name). The table has been defined in pre-webfont, and even to some extent pre-web times.
+
+### Earlier proposal
+
+I have circulated an early version of this proposal in 2013. It went nowhere, but two other proposals that I have made back then, have went somewhere (SVG in OpenType and variable OpenType fonts). It’s 2020, and I think the reasons behind my proposal have actually multiplied.
+
+In the above proposal, some portions (such as the concept of vocabularyIDs, and in particular the registered vocabularyIDs and the “text contents” vocabularyID 0), are optional, and could be “done away with” if the community deems it too complex. I’m kind of keen on at least keeping two vocabularyIDs: 0 for “text contents” and 1 for “private labels”.
+
+I’m grateful to Laurence Penney for mentioning The Noun Project to me, and for his ideas that helped me formulate the “vocabulary” concept in this proposal.
+
+With discussion of color font formats in 2013, I’ve heard one recurring word of praise for the Microsoft proposal (`COLR`/`CPAL`): that it was _simple and lightweight_, therefore easy to implement. I have noticed that this aspect of the Microsoft proposal was almost universally praised, and this was what has motivated me to attempt a similar path with the `LABL` proposal. I have a feeling that the `Zapf` table is a tad too ambitious, and a bit
+“over-engineered”, and therefore never really found wide adoption.
+
+When writing the `LABL` proposal, I tried to learn from the lack of adoption of `Zapf` and from the overall warm welcome of the `COLR/CPAL` proposal. I tried to make the structure clean and simple to use.
+
+I tried to create a structure that is a bit modular — e.g. the concept of registered vocabularyIDs is sort of optional. If the community finds that aspect too much of a complication, it can be removed (leaving only one or two hardcoded Encoding IDs) without invalidating the entire structure. Analogically, if the community decides to drop that idea now but revisits it in future, the notion of adding an extra Encoding ID is easy and won’t break previous implementations.
+
+Plus, the Vocabulary concept allows for a clean separation: each vocabulary exists in a separate LABL subtable, therefore a font developer can easily set up, say, 30 labels within one particular vocabulary, and then 150 labels within another vocabulary, independently of each other. This is something I learned to like about `cmap` — that each `cmap` subtable can really be handled separately. These days, only the cmap 3.x is of relevance, but the fact that you can “safely” add or remove 0.x, 1.x or 4.x cmap subtables without interfering with the 3.x subtable, and that these subtables could address different subsets of the glyphset, always was appealing to me.
+
+The fact that pretty much every font editing tool already has a `name` table editor, and that all platforms have the ability to parse the `name` table makes the `LABL` proposal a rather low-hanging fruit.
+
+The only administrative overhead resulting from my proposal will be the maintenance of the list of registered Vocabulary IDs. But I believe it’s unlikely we’ll ever get more than a dozen of those, so it’s still quite “cheap”.
+
+Of course, the maintenance of the actual vocabularies or “policing” semantic conformance of the labels to a particular vocabulary is completely out of scope of the spec — just like it is out of scope of the spec to ensure that, in a particular font, the glyph with the Unicode U+0041 really depicts an uppercase “A”.
+
+Regards,
+
+> Adam Twardoch
+</file>
+
+<file path="README.md">
+# opentype-layout
+opentype-layout working group documents
+
+## Proposals
+
+Proposals fall into various different categories.
+
+### New Lookups
+
+#### GSUB
+
+* [Move Lookup](proposals/20151104-movelookup.md)
+* [Complex Contextual Chaining](proposals/complex_contextual.md)
+
+#### GPOS
+
+* [Polygon Kerning](proposals/20191011-polygonkerning.md)
+
+### New Lookup flag
+
+These proposals add new flags to the LookupFlags of all lookups. As such they
+implicitly reference each other in terms of the particular flag bit chosen.
+
+* [Extending LookupFlags](proposals/lookupflags_extend.md)
+* [Glyph Filtering](proposals/glyph_filtering.md)
+* [Spacing Attachment](proposals/20151104-spacemark.md)
+
+### Conditions
+
+* [Capabilities](proposals/201910111-capability.md)
+
+### Features
+
+* [Topographical Features](proposals/20160203-Joining_Feature_Proposal_1.2.pdf)
+
+## Other Documents
+
+* [Documentation Needs](docs/docneeds.md)
+* [Ligature Formation](docs/ligatures.md)
+</file>
+
+<file path="proposals/20151104-spacemark.md">
+# Spacing Attachment
+
+This is a proposal to extend the OpenType standard to support spacing marks.
+
+## Introduction
+
+One of the struggles in OpenType font development is when attaching a mark to
+a base, the mark protrudes from the base and requires extra space either before
+or after the base for it to protrude into, without colliding with another glyph.
+The difficult problem is knowing what the size of this space should be given
+it involves the size of the diacritic and its relative position on the particular
+base it is attached to. Therefore, the value changes for every mark and every
+base that can combine in such a way.
+
+Spacing marks are marks considered to have extent. When attached to a base or
+another mark, such marks cause the extent of the base to be adjusted to ensure
+that the combined cluster includes the extent of the mark in its attached
+position. For example, if a mark is attached such that it overhangs to the right
+of the base, the advance
+of the base is extended to include the extent of the mark, and the mark itself
+is given a zero advance. Likewise if such a mark were attached such that the
+origin of the positioned mark were to the left of the origin of the base,
+the origin of the cluster would be shifted back to include the origin of
+the mark, while the offset from the origin of the base would be equally adjusted
+to keep it in its same relative position.
+
+![Example](spacing_mark.png)
+
+When a mark is attached to a cursively attached based, using spacing attachment,
+the mark will not cause the positional relationship between the cursively attached
+base and the base to which it is attached (or bases attached to it) to change.
+Instead the the collection of mutually cursively attached bases and their marks
+are treated as a visual cluster and the position of the root of the cursively
+attached tree is adjusted to ensure that no marks in a spacing attachment relationship
+extend to the left outside the bounds of the cluster. Likewise the advance of
+the last base glyph in the cluster is adjusted to ensure that no marks in a
+spacing attachment relationship extend to the right beyond the bounds of the
+cluster.
+
+Since the advance of the mark has been incorporated into the base,
+the advance of the spacing mark is zeroed as it is attached.
+
+## Changes
+
+> Define LookupFlags 0x0040 as the `SpacingAttach` flag
+
+The `SpacingAttach` flag has meaning in the context of MarkToBase,
+MarkToLigature and MarkToMark attachment type lookups. In each of these cases
+the attaching glyph is treated as though it were a spacing mark.
+For all other lookup types, the flag is ignored.
+
+The effect of setting the flag on different attachment type lookups is based
+on the x-position of the attachment point on the _mark_ glyph (`_P`) that is
+the one that moves, its advance (`_A`). Also on the attachment point
+x-position on the _base_ glyph (`P`), that is the one that does not move, and
+its advance (`A`).
+
+There are various processing models, including keeping a full tree of mark
+attachment relationships. The model described here is designed for a
+"position and forget" model where marks are positioned but no relationship is
+maintained. For this we introduce the concept of a shift attribute on the
+_base_ glyph (`S`) and on the _mark_ (`_S`).
+
+### Mark to Base (Type 4)
+
+On attachment, the advance of the base is adjusted such that if `_A + S + P - _S - _P > A`
+then `A` becomes `_A + S + P - _S - _P` and the advance on the mark (`_A`) is set
+to 0. Likewise if the width of the diacritic to the left is greater than the
+base, then the base is shifted. The shift is `_S + _P - S - P`, if that value is
+greater than 0. 
+
+In order to shift a base glyph, that is not cursively attached, there needs
+to be an extra attribute on the glyph that holds the shift. Simply increasing
+the advance on a previous glyph does not allow a future Mark to Base
+attachment to know that this base already has extra space inserted in front
+of it. After
+all attachment is done the shift attribute can be used to either offset all
+the glyphs in the cluster (base plus all following marks) and the advance of
+the base glyph, or by increasing the advance on the preceding base or
+ligature.
+
+If the base is cursively attached, then for the purposes of advance or shift
+the advance is of the accumulated advance of all the glyphs cursively
+attached. The measurement for `P` is increased by the advances of all the
+glyphs up to the base glyph, in the cursively attached cluster. Likewise the
+advance of the base is the accumulated advances of all the glyphs following
+the base, in the cursive cluster. Any increase in advance is applied to the
+last glyph of the cursive cluster. This may affect the order in which glyphs
+are attached in order to get expected behaviour. When processing right to
+left, appropriate care must be taken that the advance and
+origin of the cluster are appropriately calculated with respect to the
+attached mark.
+
+### Mark to Ligature (Type 5)
+
+This behaves in exactly the same way as for a Mark to Base attachment.
+
+### Mark to Mark (Type 6)
+
+Marks may attach to other marks. Here attachment is much like for the Mark to
+Base. Marks may have shifts and advances just like bases. The only difference
+is that after all attachment is completed, the calculated extra shift of a mark (`S`) is ignored.
+
+The effect of this approach to a long chain of stacked diacritics is that
+they will have to be attached twice. The first pass is done in reverse order
+with the latest mark attaching to the earlier in order to propagate all the
+width and shift onto the bottom mark. Then the marks are attached in
+conventional order. Long chains of spacing attachments are very rare.
+
+### Cursive Attachment (Type 3)
+
+The normal behaviour of cursive attachment is to set the advance of the second glyph to be the difference of the advance of the second and first glyph. Setting the space attach bit changes this behaviour such that if the resulting advance of the second glyph is < 0, it is set to 0.
+
+Notice where a base character is cursively attached to another base, for purposes of spacing attachment, the base is considered to be attached to the other base as if it were a mark. Thus extra space only occurs to the left of the first glyph in a cluster chain or after the last and not within the chain.
+
+## Rationale
+
+Some shapers zero their marks. This means the advance of the mark is set to
+zero. This makes it hard to have a mark contribute to the space of a cluster.
+For those shapers that do not zero their marks, calculating the impact of an
+overlapping attachment on the advance of the mark is problematic, otherwise the
+font has the job of zeroing its marks.
+
+This added semantic can be enabled to help resolve the calculations needed to
+account for protruding diacritics and ensuring appropriate spacing with minimal
+complexity.
+</file>
+
+<file path="proposals/complex_contextual.md">
+# Complex Contextual Chaining Lookup
+
+This is a proposal to add a GSUB lookup to support complex contextual chaining including string permutation.
+
+
+## Description
+
+The complex contextual chaining lookup is a class based contextual GSUB lookup. The lookup is designed to only have one subtable. In the case of multiple subtables, each subtable is its own pass: equivalent to a full lookup.
+
+### ComplexChainLookup1
+
+Type     | Name         | Description
+-------- |------------- |--------------------------
+uint16   | SubstFormat  | Format identifier-format = 1
+Offset   | ClassDef     | class table for glyphids to be matched, relative to the start of the subtable
+uint8    | maxBackup    | Maximum string backup for matching
+uint8    | minBackup    | Minimum string backup
+uint8    | maxLoop      | Maximum number of iterations before progress must have been made
+uint8    | reserved     |
+uint16   | backupNode[] | Array of maxBackup - minBackup + 1 ChainNode references
+uint16   | numNodes	    | Number of ChainNodes
+Offset32 | ChainNode[]  | Array of offsets to ChainNodes
+
+The `ClassDef` is a single class that categorises glyphs in the input string.
+
+The `maxBackup` and `minBackup` values describe how processing occurs. The input glyph string is backed up
+by maxBackup glyphs (skipping marks if specified, etc.) and if that is not possible then by as many as possible.
+If this number is less than minBackup then the lookup fails and processing stops. The amount
+of backup is kept and used to modify indices in the ChainNode. Subtracting the minBackup from this backup
+value gives the index in the ChainNode array which specifies the starting ChainNode for processing. Before
+backing up, the class index for the current glyph is tested for 0. If it is 0, then processing is skipped
+for this glyph and the match position is advanced.
+
+As the lookup progresses through the string, each action is able to adjust the starting point for the next
+match. This adjustment includes not advancing or even advancing backwards. To ensure that the lookup
+does not process forever or explode its output, it keeps track of the furthest point in the input string that
+has been reached. A counter counts each time a match starts and is reset when the furthest point is reached.
+If the count reaches `maxLoop`, because progress is assumed to not have occurred, the lookup jumps its processing
+to the furthest point and continues from there, as a best attempt to recover.
+
+### ChainNode
+
+Type   | Name                 | Description
+------ |-----------           |--------------------------
+uint8  | actionid			  | Action identifier for a final node
+uint16 | numActions			  | Number of Action offsets.
+Offset | ChainAction[]        | Action for a final state.
+uint16 | numTransitions       | Number of transitions
+struct | ClassNode[]          | Array of numTransitions ClassNode
+
+A ChainNode represents both action and comparison. During matching the ClassNode array is searched for
+a node corresponding to the class index of the current glyph in the string. If matched, the search
+position in the input string is advanced and processing continues with the corresponding ChainNode.
+As it goes the engine collects actions to process at each node. This continues until no match occurs.
+The engine backtracks until it finds a final node, one with a non-zero `actionid`.
+
+Once a final state is selected for execution, all the collected actions with the same `actionid` as
+the final state, are executed at their corresponding positions in the order they were collected.
+
+The `ClassNode` is an array of ClassNodes sorted by `classIndex`.
+
+### ClassNode
+
+When matching, the classIndex of the glyph being tested is searched for in the list of ClassNodes. If
+there is no corresponding ClassNode for the classIndex, then the match has failed. The only case when
+this is not the case is if there is a ClassNode with a classIndex of 0xFFFF.
+
+Type   | Name       | Description
+------ |----------- |--------------------------
+uint16 | classIndex | class index value to match
+uint16 | chainNode  | chainNode index to use on match
+
+A `classIndex` of 0xFFFF is special. It is used as a default transition. Rather than having
+to store entries for all the unspecified class indices, using 0xFFFF allows for a fallback and alleviates
+the need to store so many entries.
+
+### ChainAction
+
+Type   | Name     | Description
+------ |--------- |--------------------------
+uint8  | chainid  | Action chain number of this action
+uint8  | distance | How far back to process
+uint16 | lookup   | Lookup id to execute
+
+The `distance` corresponds to a position in the matched string according to a matched node, back from the end
+of the string thus far matched. Thus distance 1 is after distance 2 in the glyph string. If mark skipping
+is enabled, for example, it may be possible for there to be many glyphs between distance 2 and distance 1.
+
+The lookup specifies the lookup id to execute at the specified string position. The following are
+special lookup ids that are reserved for other actions:
+
+Id     | Description
+------ | -----------
+0xFFFF | Start new match here after action processing
+
+For a lookup id of 0xFFFF, the last executed action will give the final result.
+
+> Need to describe what happens when a lookup changes the length of the processed string.
+
+After a final state action is completed the engine restarts with the next glyph following either:
+
+. The latest glyph in the stream which has had a lookup 0xFFFF _executed_ on it.
+. Or if no such glyph exists, the latest glyph in the stream for which any lookup has been executed.
+
+Restarting includes backtracking and starting with the first ChainNode. The only difference from completely
+restarting the lookup, is that the furthest point tracker and counter are not reset.
+
+## Discussion
+
+Since the lookup has complete control over the processing of the pass, it is possible for it
+to track the making of progress and to ensure that a font doesn't cause an infinite loop or explode
+its output unreasonably. To that end, implementations are advised to put a limit on the growth
+of a glyph string during such a lookup and to exit early should that limit be exceeded.
+
+Two other principles have influenced the design: size and speed. Using only one class table allows
+the input glyph string to be remapped into class space to simplify comparison. Although this adds complexity
+in handling the sublookups that get executed, given the ability this lookup provides to reprocess
+the output from a previous match in this lookup. A class is also used over multiple coverage tables, to save space.
+
+By making the chainNode offset relative to the subtable, it is possible to form loops in the
+node chain. This allows for full DFA processing. The action\_chain mechanism is primarily of use
+for looped ChainNodes to allow processing within a klein star sequence.
+
+With care it is possible for a compiler to add transitions between ChainNodes that will incorporate
+the default behaviour of advancing, without having to have the engine restart a match, and
+so have to back up for the backtrack. But this is not a requirement.
+</file>
+
+</files>
